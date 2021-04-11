@@ -111,7 +111,7 @@ def get_ids(header_info=''):
         if (status != 200):
             with open("logs/" + csv_name + "_log.txt", 'a') as log:
                 log.write("Timestamp: " + str(datetime.datetime.now()) + "\nURL: " + url + "\nStatus Code: " + str(req.status_code) + "\nException: " + "\nContent: " + str(req.content) + "\n\n")
-            print("Request answered with Status-Code " + status)
+            print("Request answered with Status-Code "+str(status))
             print("Trying again in 1 minute...")
             time.sleep(60)
     soup = BeautifulSoup(req.text, "lxml")

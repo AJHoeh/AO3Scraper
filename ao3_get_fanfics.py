@@ -186,7 +186,7 @@ def write_fic_to_csv(fic_id, only_first_chap, lang, writer, errorwriter, header_
 		if (status != 200):
 			error_row = [fic_id] + ["Status: "+str(req.status_code)]
 			errorwriter.writerow(error_row)
-			print("Request answered with Status-Code "+status)
+			print("Request answered with Status-Code "+str(status))
 			print("Trying again in 1 minute...")
 			time.sleep(60)
 	src = req.text
