@@ -104,7 +104,16 @@ def get_args():
 def get_ids(header_info=''):
     global page_empty
     headers = {'user-agent' : header_info}
-    req = requests.get(url, headers=headers)
+    status = 0
+    while (status != 200):
+        req = requests.get(url, headers=headers)
+        status = req.status_code
+        if (status != 200):
+            with open("logs/" + csv_name + "_log.txt", 'a') as log:
+                log.write("Timestamp: " + str(datetime.datetime.now()) + "\nURL: " + url + "\nStatus Code: " + str(req.status_code) + "\nException: " + "\nContent: " + str(req.content) + "\n\n")
+            print("Request answered with Status-Code " + status)
+            print("Trying again in 1 minute...")
+            time.sleep(60)
     soup = BeautifulSoup(req.text, "lxml")
 
     # some responsiveness in the "UI"
@@ -114,8 +123,6 @@ def get_ids(header_info=''):
 
     # see if we've gone too far and run out of fic: 
     if (len(works) is 0):
-        with open("logs/"+csv_name + "_log.txt", 'a') as log:
-            log.write("Timestamp: "+str(datetime.datetime.now())+"\nURL: "+url+"\nStatus Code: "+str(req.status_code)+"\nException: "+"\nContent: "+str(req.content)+"\n\n")
         page_empty = True
 
     # process list for new fic ids
