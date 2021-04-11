@@ -110,7 +110,7 @@ def get_ids(header_info=''):
         status = req.status_code
         if (status != 200):
             with open("logs/" + csv_name + "_log.txt", 'a') as log:
-                log.write("Timestamp: " + str(datetime.datetime.now()) + "\nURL: " + url + "\nStatus Code: " + str(req.status_code) + "\nException: " + "\nContent: " + str(req.content) + "\n\n")
+                log.write("Timestamp: "+ tr(datetime.datetime.now())+", Status Code: "+str(req.status_code)+", URL: "+url+"\n")
             print("Request answered with Status-Code "+str(status))
             print("Trying again in 1 minute...")
             time.sleep(60)
