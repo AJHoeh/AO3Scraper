@@ -180,6 +180,9 @@ def write_fic_to_csv(fic_id, only_first_chap, lang, writer, errorwriter, header_
 		url = url + '&amp;view_full_work=true'
 	headers = {'user-agent' : header_info}
 	req = requests.get(url, headers=headers)
+	if (req.status_code != 200):
+		error_row = [fic_id] + [str(req.status_code)]
+		errorwriter.writerow(error_row)
 	src = req.text
 	soup = BeautifulSoup(src, 'html.parser')
 	if (access_denied(soup)):

@@ -114,6 +114,8 @@ def get_ids(header_info=''):
 
     # see if we've gone too far and run out of fic: 
     if (len(works) is 0):
+        with open("logs/"+csv_name + "_log.txt", 'a') as log:
+            log.write("Timestamp: "+str(datetime.datetime.now())+"\nURL: "+url+"\nStatus Code: "+str(req.status_code)+"\nException: "+"\nContent: "+str(req.content)+"\n\n")
         page_empty = True
 
     # process list for new fic ids
@@ -224,6 +226,7 @@ def not_finished():
 def make_readme():
     with open(csv_name + "_readme.txt", "w") as text_file:
         text_file.write("url: " + url + "\n" + "num_requested_fic: " + str(num_requested_fic) + "\n" + "retreived on: " + str(datetime.datetime.now()))
+
 
 # reset flags to run again
 # note: do not reset seen_ids
