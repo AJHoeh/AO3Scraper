@@ -271,47 +271,93 @@ def process_id(fic_id, restart, found):
 	else:
 		return False
 
+
 def main():
 	fic_ids, csv_out, headers, restart, is_csv, only_first_chap, lang = get_args()
-	delay = 5
+	delay = 1
 	os.chdir(os.getcwd())
-	if not csv_out.lower().endswith(".csv"):
-		csv_out = csv_out+".csv"
-	out_folder = "fiction/"
-	with open(out_folder+csv_out, 'a', newline="") as f_out:
-		writer = csv.writer(f_out)
-		with open("logs/errors_" + csv_out, 'a', newline="") as e_out:
-			errorwriter = csv.writer(e_out)
-			#does the csv already exist? if not, let's write a header row.
-			if os.stat(out_folder+csv_out).st_size == 0:
-				print('Writing a header row for the csv.')
-				header = ['work_id', 'title', 'author', 'rating', 'category', 'fandom', 'relationship', 'character', 'additional tags', 'language', 'published', 'status', 'status date', 'words', 'chapters', 'comments', 'kudos', 'bookmarks', 'hits', 'all_kudos', 'all_bookmarks', 'body']
-				writer.writerow(header)
-			if is_csv:
-				csv_fname = fic_ids[0]
-				with open(csv_fname, 'r+', newline="") as f_in:
-					reader = csv.reader(f_in)
-					if restart is '':
-						for row in reader:
-							if not row:
-								continue
-							write_fic_to_csv(row[0], only_first_chap, lang, writer, errorwriter, headers)
-							time.sleep(delay)
-					else: 
-						found_restart = False
-						for row in reader:
-							if not row:
-								continue
-							found_restart = process_id(row[0], restart, found_restart)
-							if found_restart:
-								write_fic_to_csv(row[0], only_first_chap, lang, writer, errorwriter, headers)
-								time.sleep(delay)
-							else:
-								print('Skipping already processed fic')
 
-			else:
-				for fic_id in fic_ids:
-					write_fic_to_csv(fic_id, only_first_chap, lang, writer, errorwriter, headers)
-					time.sleep(delay)
+	out_folder = "fiction/"
+	done = False
+	fic_count = 0
+	part_count = 1
+
+	while not done:
+		if not csv_out.lower().endswith(".csv"):
+			out_file = csv_out + ".csv"
+		with open(out_folder+out_file, 'a', newline="") as f_out:
+			writer = csv.writer(f_out)
+			with open("logs/errors_" + out_file, 'a', newline="") as e_out:
+				errorwriter = csv.writer(e_out)
+				#does the csv already exist? if not, let's write a header row.
+				if os.stat(out_folder+out_file).st_size == 0:
+					print('Writing a header row for the csv.')
+					header = ['work_id', 'title', 'author', 'rating', 'category', 'fandom', 'relationship', 'character', 'additional tags', 'language', 'published', 'status', 'status date', 'words', 'chapters', 'comments', 'kudos', 'bookmarks', 'hits', 'all_kudos', 'all_bookmarks', 'body']
+					writer.writerow(header)
+				if is_csv:
+					csv_fname = fic_ids[0]
+					with open(csv_fname, 'r+', newline="") as f_in:
+						reader = csv.reader(f_in)
+						if restart is '':
+							for row in reader:
+								if not row:
+									continue
+								if (((fic_count / 300) / part_count) == 1):
+									part_count += 1
+									csv_out = csv_out + "_" + str(part_count)
+									restart = row[0]
+									print("Switching to new file: " + csv_out)
+									break
+								write_fic_to_csv(row[0], only_first_chap, lang, writer, errorwriter, headers)
+								fic_count += 1
+								restart = ""
+								time.sleep(delay)
+							if restart == "":
+								print("Scraping of done.")
+								done = True
+								break
+
+						else:
+							found_restart = False
+							for row in reader:
+								if not row:
+									continue
+								found_restart = process_id(row[0], restart, found_restart)
+								if found_restart:
+									if (((fic_count / 300) / part_count) == 1):
+										part_count += 1
+										csv_out = csv_out + "_" + str(part_count)
+										restart = row[0]
+										print("Switching to new file: " + csv_out)
+										break
+									write_fic_to_csv(row[0], only_first_chap, lang, writer, errorwriter, headers)
+									fic_count += 1
+									restart = ""
+									time.sleep(delay)
+								else:
+									print('Skipping already processed fic')
+							if restart == "":
+								print("Scraping of done.")
+								done = True
+								break
+
+				else:
+					for fic_id in fic_ids:
+						if (((fic_count / 300) / part_count) == 1):
+							part_count += 1
+							csv_out = csv_out + "_" + str(part_count)
+							restart = fic_id
+							print("Switching to new file: " + csv_out)
+							break
+						write_fic_to_csv(fic_id, only_first_chap, lang, writer, errorwriter, headers)
+						fic_count += 1
+						restart = ""
+						time.sleep(delay)
+					if restart == "":
+						print("Scraping of done.")
+						done = True
+						break
+
+
 
 main()

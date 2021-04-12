@@ -246,7 +246,7 @@ def reset():
 def process_for_ids(header_info=''):
     while(not_finished()):
         # 5 second delay between requests as per AO3's terms of service
-        time.sleep(5)
+        time.sleep(1)
         ids = get_ids(header_info)
         write_ids_to_csv(ids)
         update_url_to_next_page()
