@@ -29,13 +29,13 @@ def get_args():
 	return args
 
 
-def compare_id(id, first, last):
+def compare_id(id, first, last, should_copy):
 	if id is first:
-		return "first"
+		return True
 	elif id is last:
 		return "last"
 	else:
-		return True
+		return should_copy
 
 
 if __name__ == '__main__':
@@ -65,14 +65,18 @@ if __name__ == '__main__':
 		reader = csv.reader(f_in)
 		with open(out_csv + ".csv", 'a', newline="") as f_out:
 			writer = csv.writer(f_out, delimiter=',')
+			if None is first_id:
+				should_copy = True
+			else:
+				should_copy = False
 			for row in reader:
 				if not row:
 					continue
-				result = compare_id(row[0], first_id, last_id)
-				if result is "last":
+				should_copy = compare_id(row[0], first_id, last_id, should_copy)
+				if should_copy is "last":
 					print("The last id has been reached.")
 					break
-				elif result is "first":
+				elif should_copy is False:
 					print('Skipping id to be excluded')
 				else:
 					writer.writerow(row)
