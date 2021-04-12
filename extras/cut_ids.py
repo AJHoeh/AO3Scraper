@@ -39,13 +39,13 @@ def compare_id(id, first, last, should_copy):
 
 
 if __name__ == '__main__':
-    # Parse the arguments
-    args = get_args()
+	# Parse the arguments
+	args = get_args()
 
-    # Raw print arguments
-    print("You are running the script with arguments: ")
-    for a in args.__dict__:
-        print(str(a) + ": " + str(args.__dict__[a]))
+	# Raw print arguments
+	print("You are running the script with arguments: ")
+	for a in args.__dict__:
+		print(str(a) + ": " + str(args.__dict__[a]))
 
 	csv.field_size_limit(1000000000)  # up the field size because stories are long
 
