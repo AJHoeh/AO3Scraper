@@ -275,12 +275,15 @@ def main():
 	fic_ids, csv_out, headers, restart, is_csv, only_first_chap, lang = get_args()
 	delay = 5
 	os.chdir(os.getcwd())
-	with open(csv_out, 'a', newline="") as f_out:
+	if not csv_out.lower().endswith(".csv"):
+		csv_out = csv_out+".csv"
+	out_folder = "fiction/"
+	with open(out_folder+csv_out, 'a', newline="") as f_out:
 		writer = csv.writer(f_out)
-		with open("errors_" + csv_out, 'a', newline="") as e_out:
+		with open("logs/errors_" + csv_out, 'a', newline="") as e_out:
 			errorwriter = csv.writer(e_out)
 			#does the csv already exist? if not, let's write a header row.
-			if os.stat(csv_out).st_size == 0:
+			if os.stat(out_folder+csv_out).st_size == 0:
 				print('Writing a header row for the csv.')
 				header = ['work_id', 'title', 'author', 'rating', 'category', 'fandom', 'relationship', 'character', 'additional tags', 'language', 'published', 'status', 'status date', 'words', 'chapters', 'comments', 'kudos', 'bookmarks', 'hits', 'all_kudos', 'all_bookmarks', 'body']
 				writer.writerow(header)
