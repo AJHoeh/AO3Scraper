@@ -179,16 +179,21 @@ def write_fic_to_csv(fic_id, only_first_chap, lang, writer, errorwriter, header_
 	if not only_first_chap:
 		url = url + '&amp;view_full_work=true'
 	headers = {'user-agent' : header_info}
-	status = 0
-	while (status != 200):
+	status = 429
+	while (status == 429):
 		req = requests.get(url, headers=headers)
 		status = req.status_code
-		if (status != 200):
+		if (status == 429):
 			error_row = [fic_id] + ["Status: "+str(req.status_code)]
 			errorwriter.writerow(error_row)
 			print("Request answered with Status-Code "+str(status))
 			print("Trying again in 1 minute...")
 			time.sleep(60)
+	if (status != 200):
+		print("Error scraping ", fic_id, "Status ", status)
+		error_row = [fic_id] + [status]
+		errorwriter.writerow(error_row)
+		return
 	src = req.text
 	soup = BeautifulSoup(src, 'html.parser')
 	if (access_denied(soup)):
