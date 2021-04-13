@@ -286,10 +286,15 @@ def main():
 	done = False
 	fic_count = 0
 	part_count = 1
-
+	if csv_out.lower().endswith(".csv"):
+		csv_out = csv_out[:len(csv_out)-4]
 	while not done:
-		if not csv_out.lower().endswith(".csv"):
-			out_file = csv_out + ".csv"
+		out_file = csv_out
+		if part_count > 1:
+			out_file += "_" + str(part_count)
+			print("Switching to new file: " + out_file + ".csv")
+		out_file += ".csv"
+
 		with open(out_folder+out_file, 'a', newline="") as f_out:
 			writer = csv.writer(f_out)
 			with open("logs/errors_" + out_file, 'a', newline="") as e_out:
@@ -309,9 +314,7 @@ def main():
 									continue
 								if (((fic_count / 300) / part_count) == 1):
 									part_count += 1
-									csv_out = csv_out + "_" + str(part_count)
 									restart = row[0]
-									print("Switching to new file: " + csv_out)
 									break
 								write_fic_to_csv(row[0], only_first_chap, lang, writer, errorwriter, headers)
 								fic_count += 1
@@ -331,9 +334,7 @@ def main():
 								if found_restart:
 									if (((fic_count / 300) / part_count) == 1):
 										part_count += 1
-										csv_out = csv_out + "_" + str(part_count)
 										restart = row[0]
-										print("Switching to new file: " + csv_out)
 										break
 									write_fic_to_csv(row[0], only_first_chap, lang, writer, errorwriter, headers)
 									fic_count += 1
@@ -350,9 +351,7 @@ def main():
 					for fic_id in fic_ids:
 						if (((fic_count / 300) / part_count) == 1):
 							part_count += 1
-							csv_out = csv_out + "_" + str(part_count)
 							restart = fic_id
-							print("Switching to new file: " + csv_out)
 							break
 						write_fic_to_csv(fic_id, only_first_chap, lang, writer, errorwriter, headers)
 						fic_count += 1
