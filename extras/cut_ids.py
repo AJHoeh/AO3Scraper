@@ -68,7 +68,7 @@ def create_file_name(original_name, extension, prefix=None, suffix=None):
 		basename += suffix
 	basename += extension
 
-	return ntpath.join(directory, basename)
+	return directory+"/"+basename
 
 
 def main():
@@ -100,7 +100,7 @@ def main():
 
 	with open(id_csv, 'r+', newline="") as f_in:
 		reader = csv.reader(f_in)
-		with open(out_csv + ".csv", 'a', newline="") as f_out:
+		with open(out_csv, 'a', newline="") as f_out:
 			writer = csv.writer(f_out, delimiter=',')
 			if None is first_id:
 				should_copy = True
