@@ -30,6 +30,7 @@ tags = []
 # that are written to the csv and then forgotten
 seen_ids = []
 
+
 # 
 # Ask the user for:
 # a url of a works listed page
@@ -40,8 +41,7 @@ seen_ids = []
 # what to call the output csv
 # 
 # If you would like to add additional search terms (that is should contain at least one of, but not necessarily all of)
-# specify these in the tag csv, one per row. 
-
+# specify these in the tag csv, one per row.
 def get_args():
     global base_url
     global url
@@ -75,7 +75,7 @@ def get_args():
     csv_name = str(args.out_csv)
     
     # defaults to all
-    if (str(args.num_to_retrieve) is 'a'):
+    if str(args.num_to_retrieve) is 'a':
         num_requested_fic = -1
     else:
         num_requested_fic = int(args.num_to_retrieve)
@@ -87,7 +87,7 @@ def get_args():
         multichap_only = False
 
     tag_csv = str(args.tag_csv)
-    if (tag_csv):
+    if tag_csv:
         with open(tag_csv, "r") as tags_f:
             tags_reader = csv.reader(tags_f)
             for row in tags_reader:
@@ -97,20 +97,21 @@ def get_args():
 
     return header_info
 
+
 # 
 # navigate to a works listed page,
 # then extract all work ids
 # 
 def get_ids(header_info=''):
     global page_empty
-    headers = {'user-agent' : header_info}
+    headers = {'user-agent': header_info}
     status = 0
-    while (status != 200):
+    while status != 200:
         req = requests.get(url, headers=headers)
         status = req.status_code
-        if (status != 200):
+        if status != 200:
             with open("logs/" + csv_name + "_log.txt", 'a') as log:
-                log.write("Timestamp: "+ str(datetime.datetime.now())+", Status Code: "+str(req.status_code)+", URL: "+url+"\n")
+                log.write("Timestamp: "+str(datetime.datetime.now())+", Status Code: "+str(req.status_code)+", URL: "+url+"\n")
             print("Request answered with Status-Code "+str(status))
             print("Trying again in 1 minute...")
             time.sleep(60)
@@ -122,28 +123,29 @@ def get_ids(header_info=''):
     works = soup.select("li.work.blurb.group")
 
     # see if we've gone too far and run out of fic: 
-    if (len(works) is 0):
+    if len(works) is 0:
         page_empty = True
 
     # process list for new fic ids
     ids = []
     for tag in works:
-        if (multichap_only):
+        if multichap_only:
             # FOR MULTICHAP ONLY
             chaps = tag.find('dd', class_="chapters")
-            if (chaps.text != u"1/1"):
+            if chaps.text != u"1/1":
                 t = tag.get('id')
                 t = t[5:]
-                if not t in seen_ids:
+                if t not in seen_ids:
                     ids.append(t)
                     seen_ids.append(t)
         else:
             t = tag.get('id')
             t = t[5:]
-            if not t in seen_ids:
+            if t not in seen_ids:
                 ids.append(t)
                 seen_ids.append(t)
     return ids
+
 
 # 
 # update the url to move to the next page
@@ -156,12 +158,12 @@ def update_url_to_next_page():
     start = url.find(key)
 
     # there is already a page indicator in the url
-    if (start is not -1):
+    if start is not -1:
         # find where in the url the page indicator starts and ends
         page_start_index = start + len(key)
         page_end_index = url.find("&", page_start_index)
         # if it's in the middle of the url
-        if (page_end_index is not -1):
+        if page_end_index is not -1:
             page = int(url[page_start_index:page_end_index]) + 1
             url = url[:page_start_index] + str(page) + url[page_end_index:]
         # if it's at the end of the url
@@ -172,7 +174,7 @@ def update_url_to_next_page():
     # there is no page indicator, so we are on page 1
     else:
         # there are other modifiers
-        if (url.find("?") is not -1):
+        if url.find("?") is not -1:
             url = url + "&page=2"
         # there an no modifiers yet
         else:
@@ -183,7 +185,7 @@ def update_url_to_next_page():
 def add_tag_to_url(tag):
     global url
     key = "&work_search%5Bother_tag_names%5D="
-    if (base_url.find(key)):
+    if base_url.find(key):
         start = base_url.find(key) + len(key)
         new_url = base_url[:start] + tag + "%2C" + base_url[start:]
         url = new_url
@@ -199,32 +201,34 @@ def add_tag_to_url(tag):
 # 
 def write_ids_to_csv(ids):
     global num_recorded_fic
-    with open(csv_name + ".csv", 'a', newline="") as csvfile:
-        wr = csv.writer(csvfile, delimiter=',')
-        for id in ids:
-            if (not_finished()):
-                wr.writerow([id, url])
+    with open(csv_name + ".csv", 'a', newline="") as csv_file:
+        wr = csv.writer(csv_file, delimiter=',')
+        for fic_id in ids:
+            if not_finished():
+                wr.writerow([fic_id, url])
                 num_recorded_fic = num_recorded_fic + 1
             else:
                 break
+
 
 # 
 # if you want everything, you're not done
 # otherwise compare recorded against requested.
 # recorded doesn't update until it's actually written to the csv.
 # If you've gone too far and there are no more fic, end. 
-# 
+#
 def not_finished():
-    if (page_empty):
+    if page_empty:
         return False
 
-    if (num_requested_fic == -1):
+    if num_requested_fic == -1:
         return True
     else:
-        if (num_recorded_fic < num_requested_fic):
+        if num_recorded_fic < num_requested_fic:
             return True
         else:
             return False
+
 
 # 
 # include a text file with the starting url,
@@ -243,29 +247,32 @@ def reset():
     page_empty = False
     num_recorded_fic = 0
 
+
 def process_for_ids(header_info=''):
-    while(not_finished()):
+    while not_finished():
         # 5 second delay between requests as per AO3's terms of service
         time.sleep(1)
         ids = get_ids(header_info)
         write_ids_to_csv(ids)
         update_url_to_next_page()
 
+
 def main():
     header_info = get_args()
     make_readme()
 
-    print ("processing...\n")
+    print("processing...\n")
 
-    if (len(tags)):
+    if len(tags):
         for t in tags:
-            print ("Getting tag: ", t)
+            print("Getting tag: ", t)
             reset()
             add_tag_to_url(t)
             process_for_ids(header_info)
     else:
         process_for_ids(header_info)
 
-    print ("That's all, folks.")
+    print("That's all, folks.")
+
 
 main()

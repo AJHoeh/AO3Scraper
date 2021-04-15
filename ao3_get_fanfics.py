@@ -43,6 +43,44 @@ import csv
 import sys
 from unidecode import unidecode
 
+
+def get_args():
+	parser = argparse.ArgumentParser(description='Scrape and save some fanfic, given their AO3 IDs.')
+	parser.add_argument(
+		'ids', metavar='IDS', nargs='+',
+		help='a single id, a space seperated list of ids, or a csv input filename')
+	parser.add_argument(
+		'--csv', default='fanfics.csv',
+		help='csv output file name')
+	parser.add_argument(
+		'--header', default='',
+		help='user http header')
+	parser.add_argument(
+		'--restart', default='',
+		help='work_id to start at from within a csv')
+	parser.add_argument(
+		'--firstchap', default='',
+		help='only retrieve first chapter of multichapter fics')
+	parser.add_argument(
+		'--lang', default='',
+		help='only retrieves fics of certain language (e.g English), make sure you use correct spelling and capitalization or this argument will not work')
+	args = parser.parse_args()
+	fic_ids = args.ids
+	is_csv = (len(fic_ids) == 1 and '.csv' in fic_ids[0])
+	csv_out = str(args.csv)
+	headers = str(args.header)
+	restart = str(args.restart)
+	ofc = str(args.firstchap)
+	lang = str(args.lang)
+	if ofc != "":
+		ofc = True
+	else:
+		ofc = False
+	if lang == "":
+		lang = False
+	return fic_ids, csv_out, headers, restart, is_csv, ofc, lang
+
+
 def get_tag_info(category, meta):
 	'''
 	given a category and a 'work meta group, returns a list of tags (eg, 'rating' -> 'explicit')
@@ -52,7 +90,8 @@ def get_tag_info(category, meta):
 	except AttributeError as e:
 		return []
 	return [unidecode(result.text) for result in tag_list] 
-	
+
+
 def get_stats(meta):
 	'''
 	returns a list of  
@@ -82,6 +121,7 @@ def get_stats(meta):
 
 	return stats      
 
+
 def get_tags(meta):
 	'''
 	returns a list of lists, of
@@ -89,6 +129,7 @@ def get_tags(meta):
 	'''
 	tags = ['rating', 'category', 'fandom', 'relationship', 'character', 'freeform']
 	return list(map(lambda tag: get_tag_info(tag, meta), tags))
+
 
 # get kudos
 def get_kudos(meta):
@@ -108,6 +149,7 @@ def get_kudos(meta):
 		return users
 	return []
 
+
 # get author(s)
 def get_authors(meta):
 	tags = meta.contents
@@ -118,6 +160,7 @@ def get_authors(meta):
 			authors.append(tag.contents[0])
 
 	return authors
+
 
 # get bookmarks by page
 def get_bookmarks(url, header_info):
@@ -150,6 +193,7 @@ def get_bookmarks(url, header_info):
 
 	return bookmarks
 
+
 # get users form bookmarks	
 def get_users (meta):
 	users = []
@@ -158,13 +202,15 @@ def get_users (meta):
 			users.append(user)
 
 	return users
-	
+
+
 def access_denied(soup):
 	if (soup.find(class_="flash error")):
 		return True
 	if (not soup.find(class_="work meta group")):
 		return True
 	return False
+
 
 def write_fic_to_csv(fic_id, only_first_chap, lang, writer, errorwriter, header_info=''):
 	'''
@@ -229,45 +275,7 @@ def write_fic_to_csv(fic_id, only_first_chap, lang, writer, errorwriter, header_
 				errorwriter.writerow(error_row)
 			print('Done.')
 
-def get_args(): 
-	parser = argparse.ArgumentParser(description='Scrape and save some fanfic, given their AO3 IDs.')
-	parser.add_argument(
-		'ids', metavar='IDS', nargs='+',
-		help='a single id, a space seperated list of ids, or a csv input filename')
-	parser.add_argument(
-		'--csv', default='fanfics.csv',
-		help='csv output file name')
-	parser.add_argument(
-		'--header', default='',
-		help='user http header')
-	parser.add_argument(
-		'--restart', default='', 
-		help='work_id to start at from within a csv')
-	parser.add_argument(
-		'--firstchap', default='', 
-		help='only retrieve first chapter of multichapter fics')
-	parser.add_argument(
-		'--lang', default='', 
-		help='only retrieves fics of certain language (e.g English), make sure you use correct spelling and capitalization or this argument will not work')
-	args = parser.parse_args()
-	fic_ids = args.ids
-	is_csv = (len(fic_ids) == 1 and '.csv' in fic_ids[0]) 
-	csv_out = str(args.csv)
-	headers = str(args.header)
-	restart = str(args.restart)
-	ofc = str(args.firstchap)
-	lang = str(args.lang)
-	if ofc != "":
-		ofc = True
-	else:
-		ofc = False
-	if lang == "":
-		lang = False
-	return fic_ids, csv_out, headers, restart, is_csv, ofc, lang
 
-'''
-
-'''
 def process_id(fic_id, restart, found):
 	if found:
 		return True
@@ -277,24 +285,37 @@ def process_id(fic_id, restart, found):
 		return False
 
 
+def scrape(fic_id, only_first_chap, lang, writer, errorwriter, headers, part_count, fic_count, fics_per_file, delay):
+	if 1 == ((fic_count / fics_per_file) / part_count):
+		part_count += 1
+		restart = fic_id
+		scraped = False
+	else:
+		write_fic_to_csv(fic_id, only_first_chap, lang, writer, errorwriter, headers)
+		fic_count += 1
+		restart = ""
+		scraped = True
+		time.sleep(delay)
+	return scraped, restart, fic_count, part_count
+
+
 def main():
 	fic_ids, csv_out, headers, restart, is_csv, only_first_chap, lang = get_args()
 	delay = 1
 	os.chdir(os.getcwd())
 
 	out_folder = "fiction/"
-	done = False
+	fics_per_file = 2
 	fic_count = 0
 	part_count = 1
 	if csv_out.lower().endswith(".csv"):
 		csv_out = csv_out[:len(csv_out)-4]
-	while not done:
+	while True:
 		out_file = csv_out
 		if part_count > 1:
 			out_file += "_" + str(part_count)
 			print("Switching to new file: " + out_file + ".csv")
 		out_file += ".csv"
-
 		with open(out_folder+out_file, 'a', newline="") as f_out:
 			writer = csv.writer(f_out)
 			with open("logs/errors_" + out_file, 'a', newline="") as e_out:
@@ -308,23 +329,13 @@ def main():
 					csv_fname = fic_ids[0]
 					with open(csv_fname, 'r+', newline="") as f_in:
 						reader = csv.reader(f_in)
-						if restart is '':
+						if restart == '':
 							for row in reader:
 								if not row:
 									continue
-								if (((fic_count / 300) / part_count) == 1):
-									part_count += 1
-									restart = row[0]
+								scraped, restart, fic_count, part_count = scrape(row[0], only_first_chap, lang, writer, errorwriter, headers, part_count, fic_count, fics_per_file, delay)
+								if not scraped:
 									break
-								write_fic_to_csv(row[0], only_first_chap, lang, writer, errorwriter, headers)
-								fic_count += 1
-								restart = ""
-								time.sleep(delay)
-							if restart == "":
-								print("Scraping of done.")
-								done = True
-								break
-
 						else:
 							found_restart = False
 							for row in reader:
@@ -332,36 +343,19 @@ def main():
 									continue
 								found_restart = process_id(row[0], restart, found_restart)
 								if found_restart:
-									if (((fic_count / 300) / part_count) == 1):
-										part_count += 1
-										restart = row[0]
+									scraped, restart, fic_count, part_count = scrape(row[0], only_first_chap, lang, writer, errorwriter, headers, part_count, fic_count, fics_per_file, delay)
+									if not scraped:
 										break
-									write_fic_to_csv(row[0], only_first_chap, lang, writer, errorwriter, headers)
-									fic_count += 1
-									restart = ""
-									time.sleep(delay)
 								else:
 									print('Skipping already processed fic')
-							if restart == "":
-								print("Scraping of done.")
-								done = True
-								break
-
 				else:
 					for fic_id in fic_ids:
-						if (((fic_count / 300) / part_count) == 1):
-							part_count += 1
-							restart = fic_id
+						scraped, restart, fic_count, part_count = scrape(fic_id, only_first_chap, lang, writer, errorwriter, headers, part_count, fic_count, fics_per_file, delay)
+						if not scraped:
 							break
-						write_fic_to_csv(fic_id, only_first_chap, lang, writer, errorwriter, headers)
-						fic_count += 1
-						restart = ""
-						time.sleep(delay)
-					if restart == "":
-						print("Scraping of done.")
-						done = True
-						break
-
+				if restart == "":
+					print("Scraping of done.")
+					break
 
 
 main()
