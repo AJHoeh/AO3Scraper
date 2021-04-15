@@ -3,6 +3,7 @@ import os
 import argparse
 import ntpath
 
+
 def get_args():
 	parser = argparse.ArgumentParser(description='Removes ids before/after certain id.')
 	parser.add_argument(
