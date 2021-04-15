@@ -36,10 +36,10 @@ def get_args():
 	return parser.parse_args()
 
 
-def compare_id(id, first, last, should_copy):
-	if id is first:
+def compare_id(fic_id, first, last, should_copy):
+	if int(fic_id) == first:
 		return True
-	elif id is last:
+	elif int(fic_id) == last:
 		return "last"
 	else:
 		return should_copy
@@ -96,7 +96,7 @@ def main():
 		out_csv = create_file_name(out_csv, ext)
 
 	print("Writing to "+out_csv)
-	
+
 	with open(id_csv, 'r+', newline="") as f_in:
 		reader = csv.reader(f_in)
 		with open(out_csv + ".csv", 'a', newline="") as f_out:
