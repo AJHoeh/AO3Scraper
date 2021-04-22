@@ -20,7 +20,7 @@ def main():
 		'csv', metavar='csv',
 		help='the name of the csv with the original data')
 	parser.add_argument(
-		'--out_root', metavar='csv',
+		'--out_root',
 		help='Root directory for the output.',
 		default="",
 		type=str
