@@ -38,7 +38,7 @@ def main():
 		folder_name = csv_name + "_text_files"
 		if out_root and not os.path.exists(out_root):
 			os.makedirs(out_root)
-		if not os.path.exists(folder_name):
+		if not os.path.exists(out_root + folder_name):
 			os.makedirs(folder_name)
 		rd = csv.reader(csvfile, delimiter=',', quotechar='"')
 		next(rd)  # skip the header row
