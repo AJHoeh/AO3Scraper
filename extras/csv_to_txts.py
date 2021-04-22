@@ -11,6 +11,7 @@ import csv
 import os
 import argparse
 
+
 def main():
 	csv.field_size_limit(1000000000)  # up the field size because stories are long
 
@@ -18,9 +19,16 @@ def main():
 	parser.add_argument(
 		'csv', metavar='csv',
 		help='the name of the csv with the original data')
+	parser.add_argument(
+		'--out_root', metavar='csv',
+		help='Root directory for the output.',
+		default="",
+		type=str
+	)
 
 	args = parser.parse_args()
 	csv_name = args.csv
+	out_root = args.out_root
 
 	# clean extension
 	if ".csv" not in csv_name:
@@ -28,14 +36,17 @@ def main():
 
 	with open(csv_name, 'rt') as csvfile:
 		folder_name = csv_name + "_text_files"
+		if out_root and not os.path.exists(out_root):
+			os.makedirs(out_root)
 		if not os.path.exists(folder_name):
 			os.makedirs(folder_name)
 		rd = csv.reader(csvfile, delimiter=',', quotechar='"')
 		next(rd)  # skip the header row
 		for row in rd:
-			if (len(row)):
+			if len(row):
 				work_id = row[0]
-				with open(folder_name + "/" + row[0] + ".txt", "w") as text_file:
+				with open(out_root + folder_name + "/" + row[0] + ".txt", "w") as text_file:
 					text_file.write(row[-1])
+
 
 main()
