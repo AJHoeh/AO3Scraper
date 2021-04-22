@@ -313,7 +313,8 @@ def main():
 	while True:
 		out_file = csv_out
 		if part_count > 1:
-			out_file += "_" + str(part_count)
+			infix = "_0" if part_count < 10 else "_"
+			out_file += infix + str(part_count)
 			print("Switching to new file: " + out_file + ".csv")
 		out_file += ".csv"
 		with open(out_folder+out_file, 'a', newline="") as f_out:
