@@ -22,7 +22,7 @@ def parse_arguments():
 
 
 def process_csvs(file_list, writer):
-    for i, file in file_list:
+    for i, file in enumerate(file_list):
         with open(file, 'rt', newline="") as csv_file:
             reader = csv.reader(csv_file, delimiter=',', quotechar='"')
             if i > 0:
