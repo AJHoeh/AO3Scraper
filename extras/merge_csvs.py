@@ -33,7 +33,7 @@ def process_csvs(file_list, writer):
 
 def get_files(root_dir):
     print("Gathering file paths...")
-    file_list = list(Path(root_dir).rglob("*.[tT][xX][tT]"))
+    file_list = list(Path(root_dir).rglob("*.[cC][sS][vV]"))
     print("Done. {} files have been located.\n".format(len(file_list)))
     return file_list
 
